@@ -17,8 +17,9 @@ npm install
 
 ### 3. Executar o Servidor:
 
-```bash
 Inicie o servidor Node.js:
+
+```bash
 node server
 ```
 
