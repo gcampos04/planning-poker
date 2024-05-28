@@ -20,7 +20,7 @@ npm install
 Inicie o servidor Node.js:
 
 ```bash
-node server
+node server.js
 ```
 
 ### 4. Acessar a Aplicação:
