@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planning Poker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="nameInputSection" class="active">
+      <div>
+        <label for="name">Digite seu nome:</label>
+        <input type="text" id="name" placeholder="Seu nome" />
+        <button onclick="setName()">Entrar</button>
+      </div>
+    </div>
+
+    <div id="session">
+      <div id="players-container">
+        <div id="players">
+          <!-- Players will be dynamically added here -->
+        </div>
+      </div>
+      <div id="reveal-container">
+        <button id="revealButton" onclick="revealCards()">Reveal cards</button>
+      </div>
+      <div id="card-selection">
+        <button class="card" onclick="sendCard(0)">0</button>
+        <button class="card" onclick="sendCard(1)">1</button>
+        <button class="card" onclick="sendCard(2)">2</button>
+        <button class="card" onclick="sendCard(3)">3</button>
+        <button class="card" onclick="sendCard(5)">5</button>
+        <button class="card" onclick="sendCard(8)">8</button>
+        <button class="card" onclick="sendCard(13)">13</button>
+        <button class="card" onclick="sendCard('?')">?</button>
+        <button class="card" onclick="sendCard('☕')">☕</button>
+      </div>
+    </div>
+
+    <script src="scripts.js"></script>
+  </body>
+</html>

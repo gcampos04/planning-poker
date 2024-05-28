@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planning Poker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+      }
+
+      h1 {
+        margin: 20px 0;
+      }
+
+      #nameInputSection,
+      #session {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+      }
+
+      #nameInputSection.active,
+      #session.active {
+        display: flex;
+      }
+
+      #nameInputSection div,
+      #session div {
+        margin: 10px 0;
+      }
+
+      #card {
+        padding: 5px;
+        font-size: 16px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 0;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      #messages {
+        width: 80%;
+        max-width: 600px;
+        margin: 20px 0;
+      }
+
+      .message {
+        background: #fff;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Planning Poker</h1>
+
+    <div id="nameInputSection" class="active">
+      <div>
+        <label for="name">Digite seu nome:</label>
+        <input type="text" id="name" placeholder="Seu nome" />
+        <button onclick="setName()">Entrar</button>
+      </div>
+    </div>
+
+    <div id="session">
+      <div>
+        <label for="card">Escolha uma carta:</label>
+        <select id="card">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="8">8</option>
+          <option value="13">13</option>
+          <option value="21">21</option>
+          <option value="34">34</option>
+          <option value="55">55</option>
+        </select>
+        <button onclick="sendCard()">Lançar carta</button>
+      </div>
+      <button id="revealButton" onclick="revealCards()">
+        Virar todas as cartas
+      </button>
+    </div>
+
+    <div id="messages"></div>
+
+    <script>
+      let userId;
+      let userName;
+      let isAdmin = false;
+      const ws = new WebSocket("ws://" + window.location.host);
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const messages = document.getElementById("messages");
+
+        if (data.type === "nameSet") {
+          userId = data.userId;
+          userName = data.name;
+          isAdmin = data.isAdmin;
+          document
+            .getElementById("nameInputSection")
+            .classList.remove("active");
+          document.getElementById("session").classList.add("active");
+          const message = document.createElement("div");
+          message.classList.add("message");
+          message.textContent = `Bem-vindo, ${userName}!`;
+          messages.appendChild(message);
+
+          if (isAdmin) {
+            const adminMessage = document.createElement("div");
+            adminMessage.classList.add("message");
+            adminMessage.textContent = "Você é o administrador.";
+            messages.appendChild(adminMessage);
+            document.getElementById("revealButton").style.display = "block";
+          } else {
+            document.getElementById("revealButton").style.display = "none";
+          }
+        }
+
+        if (data.type === "adminAssigned") {
+          if (!isAdmin) {
+            isAdmin = true;
+            const adminMessage = document.createElement("div");
+            adminMessage.classList.add("message");
+            adminMessage.textContent = "Você é o novo administrador.";
+            messages.appendChild(adminMessage);
+            document.getElementById("revealButton").style.display = "block";
+          }
+        }
+
+        if (data.type === "userJoined") {
+          const message = document.createElement("div");
+          message.classList.add("message");
+          message.textContent = `${data.name} entrou no jogo.`;
+          messages.appendChild(message);
+        }
+
+        if (data.type === "card") {
+          const message = document.createElement("div");
+          message.classList.add("message");
+          message.textContent = `${data.name} lançou uma carta.`;
+          messages.appendChild(message);
+        }
+
+        if (data.type === "reveal") {
+          const message = document.createElement("div");
+          message.classList.add("message");
+          message.textContent = "Cartas reveladas:";
+          messages.appendChild(message);
+
+          data.cards.forEach((card) => {
+            const cardMessage = document.createElement("div");
+            cardMessage.classList.add("message");
+            cardMessage.textContent = `${card.name}: ${card.card}`;
+            messages.appendChild(cardMessage);
+          });
+        }
+
+        if (data.type === "userDisconnected") {
+          const message = document.createElement("div");
+          message.classList.add("message");
+          message.textContent = `${data.name} desconectado.`;
+          messages.appendChild(message);
+        }
+      };
+
+      function setName() {
+        const name = document.getElementById("name").value;
+        if (name) {
+          ws.send(JSON.stringify({ type: "setName", name }));
+        }
+      }
+
+      function sendCard() {
+        const card = document.getElementById("card").value;
+        ws.send(JSON.stringify({ type: "card", card }));
+      }
+
+      function revealCards() {
+        if (isAdmin) {
+          ws.send(JSON.stringify({ type: "reveal" }));
+        }
+      }
+    </script>
+  </body>
+</html>
